@@ -3,6 +3,9 @@ const express = require("express");
 const { connectMongoDb } = require("./connection");
 const URL = require("./models/url");
 const urlRoute = require("./routes/url");
+const staticRoute = require("./routes/staticRouter");
+const path=require("path");
+
 
 
 const PORT = process.env.PORT;
@@ -13,14 +16,17 @@ const app = express();
 connectMongoDb(process.env.MONGO_URL)
     .then(() => console.log("Mongodb connected"));
 
+app.set("view engine","ejs");
+app.set("views",path.resolve("./views"));
 
 //Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/url", urlRoute);
+app.use("/",staticRoute);
 
 
-app.get("/:shortId", async (req, res) => {
+app.get("/url/:shortId", async (req, res) => {
     const shortId = req.params.shortId;
     const entry = await URL.findOneAndUpdate({
         shortId
