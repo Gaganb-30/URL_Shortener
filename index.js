@@ -2,10 +2,13 @@ require("dotenv").config();
 const express = require("express");
 const { connectMongoDb } = require("./connection");
 const URL = require("./models/url");
+const path=require("path");
+const cookieParser=require("cookie-parser");
+const { restrictToLoggedinUserOnly, checkAuth } = require("./middlewares/auth");
+
 const urlRoute = require("./routes/url");
 const staticRoute = require("./routes/staticRouter");
-const path=require("path");
-
+const userRoute=require("./routes/user");
 
 
 const PORT = process.env.PORT;
@@ -22,8 +25,11 @@ app.set("views",path.resolve("./views"));
 //Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use("/url", urlRoute);
-app.use("/",staticRoute);
+app.use(cookieParser());
+
+app.use("/url", restrictToLoggedinUserOnly, urlRoute);
+app.use("/",checkAuth,staticRoute);
+app.use("/user",userRoute);
 
 
 app.get("/url/:shortId", async (req, res) => {
